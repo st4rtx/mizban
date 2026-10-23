@@ -108,4 +108,13 @@ describe('tenant isolation', () => {
     assert.equal(bad.statusCode, 401);
     assert.equal(bad.body, unknown.body, 'unknown user and wrong password must be indistinguishable');
   });
+  it('http: login limit holds when the attacker rotates X-Forwarded-For', async () => {
+    const codes: number[] = [];
+    for (let i = 0; i < 34; i++) {
+      const r = await ctx.app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'victim-ratelimit', password: 'x' + i }, headers: { 'x-forwarded-for': `10.0.${i}.1` } });
+      codes.push(r.statusCode);
+    }
+    assert.ok(codes.slice(0, 30).every((c) => c === 401), 'first 30 are normal failures');
+    assert.ok(codes.slice(30).every((c) => c === 429), 'then blocked even with a new apparent IP each time');
+  });
 });

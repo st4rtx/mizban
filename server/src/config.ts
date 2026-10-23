@@ -12,6 +12,8 @@ const schema = z.object({
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   COOKIE_SECURE: z.enum(['true', 'false']).default('false'),
   ALLOWED_ORIGINS: z.string().default(''),
+  // Number of reverse proxies in front of the app whose X-Forwarded-For we believe (nginx = 1).
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
   DEMO_MODE: z.enum(['true', 'false']).default('false'),
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().default('https://api.gapgpt.app/v1'),

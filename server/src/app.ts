@@ -45,7 +45,7 @@ export async function buildApp({ config, db }: Deps): Promise<FastifyInstance> {
       },
     },
     genReqId: (req) => (req.headers['x-request-id'] as string)?.slice(0, 64) || crypto.randomUUID(),
-    trustProxy: true,
+    trustProxy: (_addr: string, hop: number) => hop < config.TRUST_PROXY_HOPS, // believe only the first N proxy hops
     bodyLimit: 64 * 1024,
   });
 

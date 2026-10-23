@@ -2,11 +2,29 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { Ctx } from '../app.js';
 import { withTenant } from '../db/pool.js';
-import { unauthorized } from '../lib/errors.js';
+import { AppError, unauthorized } from '../lib/errors.js';
 import { DUMMY_HASH, verifyPassword } from '../lib/password.js';
 import { signSession } from '../lib/session.js';
 
 const SESSION_HOURS = 12;
+
+/**
+ * Second login limiter keyed on username only. The IP-based limiter above can be sidestepped by anyone who can
+ * vary their apparent address, so this one does not look at the IP at all. Trade-off: someone can briefly
+ * lock a known username out (30 tries/min); that is cheaper than letting a password be guessed.
+ */
+const attempts = new Map<string, { n: number; reset: number }>();
+function tooManyForUser(username: string, now = Date.now()): boolean {
+  const key = username.toLowerCase();
+  const cur = attempts.get(key);
+  if (!cur || cur.reset < now) {
+    if (attempts.size > 5000) for (const [k, v] of attempts) if (v.reset < now) attempts.delete(k);
+    attempts.set(key, { n: 1, reset: now + 60_000 });
+    return false;
+  }
+  return ++cur.n > 30;
+}
+
 const Login = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(200) });
 
 export function authRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
@@ -24,6 +42,7 @@ export function authRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
     },
     async (req, reply) => {
       const { username, password } = Login.parse(req.body);
+      if (tooManyForUser(username)) throw new AppError(429, 'rate_limited', 'تلاش‌های ناموفق زیاد بود؛ یک دقیقه بعد دوباره امتحان کنید');
       const u = (await db.query('SELECT * FROM auth_lookup($1)', [username.trim().toLowerCase()])).rows[0];
       // Same work for unknown user and wrong password: no user enumeration by timing.
       const ok = await verifyPassword(password, u?.password_hash ?? DUMMY_HASH);

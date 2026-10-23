@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: mizban
       POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:?set DB_ADMIN_PASSWORD}
       POSTGRES_DB: mizban
+    # small shared hosts: keep Postgres modest
+    command: ["postgres", "-c", "shared_buffers=96MB", "-c", "max_connections=40", "-c", "work_mem=4MB"]
     volumes:
       - mizban-pg:/var/lib/postgresql/data
     ports:
@@ -34,6 +36,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
       DEMO_MODE: ${DEMO_MODE:-false}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_BASE_URL: ${AI_BASE_URL:-https://api.gapgpt.app/v1}
