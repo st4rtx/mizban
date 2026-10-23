@@ -48,14 +48,34 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const subs = useRef(new Set<() => void>());
   useEffect(() => {
     let es: EventSource | null = null;
+    let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
     const fire = () => { clearTimeout(timer); timer = setTimeout(() => subs.current.forEach((f) => f()), 120); };
+
+    // Plan B when a proxy/CDN buffers the event stream: long-poll /api/changes (each response is complete).
+    const longPoll = async () => {
+      while (!stopped) {
+        try {
+          const r = await fetch('/api/changes', { credentials: 'same-origin' });
+          if (!r.ok) throw new Error(String(r.status));
+          setConnected(true);
+          if ((await r.json()).changed) fire();
+        } catch {
+          setConnected(false);
+          await new Promise((res) => setTimeout(res, 3000));
+        }
+      }
+    };
+
     es = new EventSource('/api/events');
-    es.onopen = () => { setConnected(true); fire(); }; // on every reconnect, refetch: we may have missed events
+    es.onopen = () => { clearTimeout(fallback); setConnected(true); fire(); }; // refetch on every (re)connect: we may have missed events
     es.onerror = () => setConnected(false);
     es.addEventListener('order', fire);
     es.addEventListener('menu', fire);
-    return () => { clearTimeout(timer); es?.close(); };
+    fallback = setTimeout(() => { es?.close(); es = null; void longPoll(); }, 5000); // stream never opened: switch transport
+
+    return () => { stopped = true; clearTimeout(timer); clearTimeout(fallback); es?.close(); };
   }, []);
   const subscribe = useCallback((fn: () => void) => { subs.current.add(fn); return () => { subs.current.delete(fn); }; }, []);
   return <LiveCtx.Provider value={{ connected, subscribe }}>{children}</LiveCtx.Provider>;

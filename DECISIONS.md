@@ -26,6 +26,9 @@ Each entry: decision / reason / alternative considered / trade-off accepted. Ent
 - **Alternative:** WebSocket with state diffs (faster, much more to get wrong), polling only (simple, 5 s stale on the kitchen board).
 - **Trade-off:** one extra GET per change per open screen. Fine at tens of devices.
 
+### 4b. Long-poll fallback, found only after deploying
+The public URL sits behind ArvanCloud, which buffers the SSE response (no bytes arrive). The client now opens SSE and, if it has not opened within 5 s, switches to `GET /api/changes` (long-poll, 25 s, complete responses). Lesson: a transport that works on localhost proves nothing about the CDN in front of it. Cost: a held request per device, same order of load as SSE.
+
 ## 5. Raw SQL with `pg` instead of an ORM
 - **Decision:** hand-written SQL in services, zod at the boundary.
 - **Reason:** I planned Prisma, then dropped it: RLS needs `set_config` inside the same transaction as every query, `FOR UPDATE`, partial unique indexes and `ON CONFLICT` are first-class here, and the data layer is small.

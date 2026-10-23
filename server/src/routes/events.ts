@@ -27,4 +27,30 @@ export function eventRoutes(app: FastifyInstance, { guard }: Ctx) {
     });
     reply.hijack();
   });
+
+  // Long-poll twin of /events for networks where a CDN buffers streaming responses (ArvanCloud does).
+  // Holds the request until something relevant changes or ~25 s pass; every response is complete, so nothing
+  // can be buffered half-way. Client refetches only when `changed` is true.
+  app.get('/changes', { preHandler: guard() }, (req, reply) => {
+    const user = req.user!;
+    let done = false;
+    const finish = (changed: boolean) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      off();
+      reply.send({ changed });
+    };
+    const off = bus.subscribe(user.restaurantId, (e: LiveEvent) => {
+      if (user.branchId && e.branchId && e.branchId !== user.branchId) return;
+      finish(true);
+    });
+    const timer = setTimeout(() => finish(false), 25_000);
+    req.raw.on('close', () => {
+      done = true;
+      clearTimeout(timer);
+      off();
+    });
+    return reply;
+  });
 }

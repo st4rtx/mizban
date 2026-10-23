@@ -7,6 +7,8 @@ import { DUMMY_HASH, verifyPassword } from '../lib/password.js';
 import { signSession } from '../lib/session.js';
 
 const SESSION_HOURS = 12;
+/** One normalisation used by every limiter and the lookup, so padding or case tricks cannot create a second counter. */
+export const normUsername = (s: string) => s.normalize('NFKC').trim().toLowerCase();
 
 /**
  * Second login limiter keyed on username only. The IP-based limiter above can be sidestepped by anyone who can
@@ -15,7 +17,7 @@ const SESSION_HOURS = 12;
  */
 const attempts = new Map<string, { n: number; reset: number }>();
 function tooManyForUser(username: string, now = Date.now()): boolean {
-  const key = username.toLowerCase();
+  const key = username; // already normalised by the schema
   const cur = attempts.get(key);
   if (!cur || cur.reset < now) {
     if (attempts.size > 5000) for (const [k, v] of attempts) if (v.reset < now) attempts.delete(k);
@@ -25,7 +27,7 @@ function tooManyForUser(username: string, now = Date.now()): boolean {
   return ++cur.n > 30;
 }
 
-const Login = z.object({ username: z.string().min(1).max(64), password: z.string().min(1).max(200) });
+const Login = z.object({ username: z.string().max(64).transform(normUsername).pipe(z.string().min(1)), password: z.string().min(1).max(200) });
 
 export function authRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
   app.post(
@@ -36,14 +38,14 @@ export function authRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
           max: 8,
           timeWindow: '1 minute',
           // per IP + username so one attacker cannot lock out everybody and a shared café Wi-Fi is not punished as one
-          keyGenerator: (req) => `${req.ip}:${String((req.body as { username?: string } | undefined)?.username ?? '').toLowerCase()}`,
+          keyGenerator: (req) => `${req.ip}:${normUsername(String((req.body as { username?: string } | undefined)?.username ?? ''))}`,
         },
       },
     },
     async (req, reply) => {
       const { username, password } = Login.parse(req.body);
       if (tooManyForUser(username)) throw new AppError(429, 'rate_limited', 'تلاش‌های ناموفق زیاد بود؛ یک دقیقه بعد دوباره امتحان کنید');
-      const u = (await db.query('SELECT * FROM auth_lookup($1)', [username.trim().toLowerCase()])).rows[0];
+      const u = (await db.query('SELECT * FROM auth_lookup($1)', [username])).rows[0];
       // Same work for unknown user and wrong password: no user enumeration by timing.
       const ok = await verifyPassword(password, u?.password_hash ?? DUMMY_HASH);
       if (!u || !ok || !u.active) {

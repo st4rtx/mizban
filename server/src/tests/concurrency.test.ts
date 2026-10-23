@@ -158,4 +158,12 @@ describe('concurrent service', () => {
     const [{ n }] = await f.q(`SELECT count(*)::int AS n FROM audit_log WHERE entity_id = $1 AND action = 'discount.set'`, [order.id]);
     assert.equal(n, 1, 'only the winning discount is audited');
   });
+  it('long-poll /changes wakes up when someone else changes an order (fallback for CDNs that buffer SSE)', async () => {
+    const waiting = ctx.app.inject({ method: 'GET', url: '/api/changes', headers: { cookie: (await login(ctx, 'reza')).cookie } });
+    await new Promise((r) => setTimeout(r, 150));
+    await openTable(maryam);
+    const res = await waiting;
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.json(), { changed: true });
+  });
 });

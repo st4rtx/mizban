@@ -24,6 +24,7 @@ All under `/api`, JSON, session cookie `mz_session` (HttpOnly, SameSite=Lax, Sec
 | GET | /reports/day?branchId&date | manager | metrics + flags |
 | POST | /reports/day/brief | manager | AI or template brief, 10/min |
 | GET | /events | any | SSE: `order`, `menu` events |
+| GET | /changes | any | long-poll twin of /events (≤25 s) for CDNs that buffer streams |
 | GET | /health, /ready | public | liveness, DB readiness |
 
 Common error codes: `unauthorized` 401, `forbidden` 403, `not_found` 404, `item_changed` / `bill_changed` / `order_closed` / `items_pending` / `item_unavailable` / `has_payments` 409.

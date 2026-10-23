@@ -117,4 +117,13 @@ describe('tenant isolation', () => {
     assert.ok(codes.slice(0, 30).every((c) => c === 401), 'first 30 are normal failures');
     assert.ok(codes.slice(30).every((c) => c === 429), 'then blocked even with a new apparent IP each time');
   });
+  it('http: padding or case tricks on the username do not create a fresh login counter', async () => {
+    const variants = ['target-user', ' target-user', 'target-user ', 'TARGET-USER', '\ttarget-user', 'Target-User  '];
+    const codes: number[] = [];
+    for (let i = 0; i < 34; i++) {
+      const r = await ctx.app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: variants[i % variants.length], password: 'p' + i }, headers: { 'x-forwarded-for': `10.1.${i}.1` } });
+      codes.push(r.statusCode);
+    }
+    assert.ok(codes.slice(30).every((c) => c === 429), `expected 429 after 30 mixed-variant attempts, got ${codes.slice(28).join(',')}`);
+  });
 });
