@@ -1,0 +1,8 @@
+web
+server
+.git
+.env
+.env.*
+graphify-out
+.remember
+docs
