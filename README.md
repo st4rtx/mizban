@@ -3,7 +3,7 @@
 Service-floor platform for Iranian cafés and restaurants. This first version finishes **one** workflow and makes it survive a real shift: table → order → kitchen/bar → serve → discount → split payment → close → day report with an AI-written brief.
 
 - Live: <https://testabr.ai-synapse.ir>  (demo accounts are on the login page; all passwords `demo1234`). Deployed from commit `82f44ac`.
-- **AI brief status:** live. GapGPT (`gapgpt-qwen-3.5`) writes the brief in about 6 s; verified on the deployed URL. The first live call failed once (`fetch failed`) and the owner correctly got the template instead, which is the fallback working as designed.
+- **AI brief status:** live. GapGPT (`gpt-4o-mini`) writes the brief in roughly 3 to 5 s; verified on the deployed URL. Two provider failures happened during testing (a timeout and a rejected answer) and each time the owner correctly got the template, which is the fallback working as designed.
 - Scope agreed before building: [SCOPE.md](SCOPE.md) · Decisions: [DECISIONS.md](DECISIONS.md) · AI usage: [AI_USAGE.md](AI_USAGE.md) · For the owner (Persian): [HANDOVER.md](HANDOVER.md)
 
 ## Demo accounts

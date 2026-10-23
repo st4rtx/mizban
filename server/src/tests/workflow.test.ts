@@ -117,4 +117,13 @@ describe('full service workflow', () => {
     assert.equal(forced.body.cached, true, 'force inside the 60 s cooldown must not call the provider again');
     assert.equal((await sara.post('/api/reports/day/brief', { ...body, force: 'yes' })).status, 400);
   });
+  it('AI facts carry a ready Jalali date, never the ISO date the model would have to convert', async () => {
+    const { buildFacts } = await import('../services/ai.js');
+    const metrics = { date: '2026-10-22', branchId: 'x', summary: { orders: 1, sales: 1000, subtotal: 1000, discount: 0, guests: 1, avgTicket: 1000 }, hourly: [], topItems: [], paymentMix: [], discounts: [], voids: { total: 0, afterCooking: 0, value: 0, byWho: [] }, kitchen: [], baseline: { weekdayAvgSales: null, samples: 0 }, soldOutBestSellers: [] };
+    const facts = buildFacts(metrics, []);
+    assert.equal(facts.date, 'پنجشنبه ۳۰ مهر ۱۴۰۵');
+    assert.ok(!JSON.stringify(facts).includes('2026'));
+    const { validateBrief } = await import('../services/ai.js');
+    assert.doesNotThrow(() => validateBrief(`برای ${facts.date} یک سفارش ثبت شد و فروش ${facts.sales} بود؛ مورد غیرعادی‌ای دیده نشد و روز آرامی بود.`, facts));
+  });
 });

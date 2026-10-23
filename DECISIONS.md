@@ -65,6 +65,10 @@ The public URL sits behind ArvanCloud, which buffers the SSE response (no bytes 
 - **Alternative:** forecasting, menu-from-photo, an "assistant" chat.
 - **Trade-off:** the number check misses small numbers (order counts, percentages); quality depends on the Iranian-accessible provider.
 
+### 10b. Model chosen by measurement, and the date handed over pre-formatted
+`gapgpt-qwen-3.5` (what the Shahnameh project uses) answered a short prompt in 0.7 s, but with the real brief payload 3 of 4 calls timed out at 15 s and the fourth took 10 s. `gpt-4o-mini` through the same provider answered 4 of 4 in 3 to 4.5 s, so it is the default (`AI_MODEL` overrides it). Separately, the first answers failed my own number check because the model converted the Gregorian date to a Jalali year (۱۴۰۵) on its own: correct, but unverifiable. The server now hands the model a ready Jalali date and tells it not to compute dates. I kept the check strict rather than allow-listing years.
+- **Trade-off:** one provider, one model, no automatic model failover; when it is down the owner gets the plain template.
+
 ## 11. `node:test` instead of Vitest/Jest
 - **Decision:** built-in runner via `tsx`.
 - **Reason:** zero extra dependencies; Vitest's install failed repeatedly in this environment (npm arborist error behind the proxy) and I would not spend the time box on it.

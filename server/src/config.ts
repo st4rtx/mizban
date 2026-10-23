@@ -17,7 +17,7 @@ const schema = z.object({
   DEMO_MODE: z.enum(['true', 'false']).default('false'),
   AI_API_KEY: z.string().optional(),
   AI_BASE_URL: z.string().default('https://api.gapgpt.app/v1'),
-  AI_MODEL: z.string().default('gapgpt-qwen-3.5'),
+  AI_MODEL: z.string().default('gpt-4o-mini'),
   AI_TIMEOUT_MS: z.coerce.number().default(15000),
   WEB_DIST: z.string().default('../web/dist'),
 });

@@ -40,7 +40,7 @@ services:
       DEMO_MODE: ${DEMO_MODE:-false}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_BASE_URL: ${AI_BASE_URL:-https://api.gapgpt.app/v1}
-      AI_MODEL: ${AI_MODEL:-gapgpt-qwen-3.5}
+      AI_MODEL: ${AI_MODEL:-gpt-4o-mini}
       WEB_DIST: /app/web/dist
     ports:
       - "127.0.0.1:${APP_PORT:-8081}:8080"
