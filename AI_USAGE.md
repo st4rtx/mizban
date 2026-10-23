@@ -28,7 +28,9 @@ These are real, from this build:
 3. **Test setup clobbered the dev database role.** Roles are cluster-wide; the test setup reset the `mizban_app` password and locked the dev API out. The AI did not foresee it. Found by `password authentication failed` in the log. Logged as REVISIT 15 in DECISIONS.
 4. **Seed column hack.** The first seed had a duplicated `ready_at` column that was spliced out later, and voided items carried a non-null `ready_at`. Cleaned after reading the generated rows.
 5. **Tool-use mistakes, not code mistakes:** a `pkill -f` pattern that matched its own shell and killed it (twice); an unquoted `--noproxy *` that the shell expanded into file names; assuming an npm mirror was reachable. All were environment discoveries, cheap to fix, but they show the AI acts on assumptions about the machine that must be checked.
-6. **Duplicate content.** The day-report UI showed every flag twice (once in the template text, once as a flag row). Found only by looking at a screenshot.
+6. **Security findings caught after commit, not before.** An automated review flagged two real flaws in the login limiter the assistant wrote: it trusted any `X-Forwarded-For` (`trustProxy: true`), and it keyed the limiter on a differently normalised username than the lookup. Both were exploitable, both are fixed and covered by tests that try the bypass.
+7. **Worked on localhost, not behind the CDN.** The SSE design passed every local test and delivered nothing through ArvanCloud. Found only by testing the deployed URL; fixed with a long-poll fallback.
+8. **Duplicate content.** The day-report UI showed every flag twice (once in the template text, once as a flag row). Found only by looking at a screenshot.
 
 ## One recommendation I rejected
 
@@ -39,13 +41,13 @@ A second, smaller one: the assistant's first instinct for the brief's anomaly de
 ## How generated code was verified
 
 - `tsc --noEmit` on server and web, every change.
-- 21 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
+- 24 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
 - Direct SQL checks: the app role has `rolbypassrls = f`, no-tenant queries return 0 rows.
 - Smoke scripts with `curl` against the running API; a screenshot pass at desktop and phone widths for every screen.
 - Built the production image, started it against a database, checked `/ready`, static assets, SPA fallback, memory (≈ 42 MB idle).
 - Read every migration and service as a reviewer, not as the author.
 
-**Not verified:** the live AI provider call; real tablets/phones; behaviour behind the production CDN (SSE buffering); anything under load.
+**Not verified:** the live AI provider call (no key available: the GapGPT key the owner pointed to was not present in the Shahnameh project env or on its server, so the deployed brief runs on the template fallback); real tablets/phones; behaviour behind the production CDN (SSE buffering); anything under load.
 
 ## Which parts of the architecture were my own thinking
 

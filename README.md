@@ -2,7 +2,8 @@
 
 Service-floor platform for Iranian cafés and restaurants. This first version finishes **one** workflow and makes it survive a real shift: table → order → kitchen/bar → serve → discount → split payment → close → day report with an AI-written brief.
 
-- Live: <https://testabr.ai-synapse.ir>  (demo accounts are on the login page; all passwords `demo1234`)
+- Live: <https://testabr.ai-synapse.ir>  (demo accounts are on the login page; all passwords `demo1234`). Deployed from commit `82f44ac`.
+- **AI brief status:** the live deployment has **no AI provider key configured yet**, so the end-of-day brief shows the deterministic template (the fallback path). Set `AI_API_KEY` in `/opt/mizban/.env` and `docker compose -p mizban up -d` to switch it on.
 - Scope agreed before building: [SCOPE.md](SCOPE.md) · Decisions: [DECISIONS.md](DECISIONS.md) · AI usage: [AI_USAGE.md](AI_USAGE.md) · For the owner (Persian): [HANDOVER.md](HANDOVER.md)
 
 ## Demo accounts
@@ -32,7 +33,7 @@ Developer loop (db in Docker, API and Vite on the host; needs Node 20):
 
 ```bash
 make dev                      # db + migrate + seed + API (:8081) + Vite (:5173)
-make test                     # 21 tests against a real Postgres (needs the db container)
+make test                     # 24 tests against a real Postgres (needs the db container)
 make reset                    # rebuild demo data
 ```
 
@@ -87,7 +88,7 @@ scripts/build-image.sh          # refuses a dirty git tree; builds web + server,
 APP_IMAGE=mizban-app:<sha> docker compose up -d --no-build
 ```
 
-The host's nginx terminates TLS for `testabr.ai-synapse.ir` and proxies to `127.0.0.1:8081` (SSE needs `proxy_buffering off`).
+ArvanCloud terminates public TLS; the host's nginx (`deploy/nginx.conf`, installed as `zzz-mizban`) uses the host's origin certificate and proxies to `127.0.0.1:8081`, overwriting `X-Forwarded-For`. ArvanCloud buffers SSE, so the client falls back to `/api/changes` long-polling (see DECISIONS 4b). Server layout and rollback: [docs/architecture/deployment.md](docs/architecture/deployment.md).
 
 ## Time box
 
