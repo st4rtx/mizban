@@ -9,7 +9,7 @@ Two different things use AI here and they should not be confused: **(a)** the pr
 - **Claude Code** (CLI / VS Code extension), Opus 5.5 for planning and the first backend pass, Sonnet 5.5 for the rest. Used for essentially everything: reading the environment, schema, services, tests, UI, seed data, Dockerfiles, documents.
 - Skills loaded inside it: `frontend-design` (design direction before writing CSS), `persian-writing` (HANDOVER and Persian UI copy, orthography lint).
 - Headless Chrome driven from Python/Playwright, to look at the screens at desktop and 390 px widths.
-- No other AI product was used for code. The runtime provider for the brief is GapGPT (OpenAI-compatible endpoint reachable from Iran); its key is **not yet configured** at the time of writing, so the live provider call is untested (see Verification).
+- No other AI product was used for code. The runtime provider for the brief is GapGPT (OpenAI-compatible endpoint reachable from Iran); its key was copied server-to-server from the Shahnameh/farr production env into `/opt/mizban/.env` (mode 600) without being printed, and is not in the repo.
 - **[OWNER]** Total hours spent and where they went.
 
 ## Where it saved real time
@@ -31,6 +31,8 @@ These are real, from this build:
 6. **Security findings caught after commit, not before.** An automated review flagged two real flaws in the login limiter the assistant wrote: it trusted any `X-Forwarded-For` (`trustProxy: true`), and it keyed the limiter on a differently normalised username than the lookup. Both were exploitable, both are fixed and covered by tests that try the bypass.
 7. **Worked on localhost, not behind the CDN.** The SSE design passed every local test and delivered nothing through ArvanCloud. Found only by testing the deployed URL; fixed with a long-poll fallback.
 8. **Duplicate content.** The day-report UI showed every flag twice (once in the template text, once as a flag row). Found only by looking at a screenshot.
+9. **Live provider flakiness.** The first deployed brief returned `fetch failed`; a direct POST then hung 25 s while a `GET /models` with the same key returned 200 in 0.5 s. Minutes later every model answered in about a second and the brief worked (about 6 s end to end). Cause unknown (provider side or path from the host). The template fallback absorbed it, which is the design, but it means provider latency is not something I can promise.
+10. **Model said «امروز» about yesterday.** Caught by reading the first real AI output, not by the number validator (it only checks digits). Fixed with an explicit prompt rule; there is no automated check for wording errors like this.
 
 ## One recommendation I rejected
 
@@ -47,7 +49,7 @@ A second, smaller one: the assistant's first instinct for the brief's anomaly de
 - Built the production image, started it against a database, checked `/ready`, static assets, SPA fallback, memory (≈ 42 MB idle).
 - Read every migration and service as a reviewer, not as the author.
 
-**Not verified:** the live AI provider call (no key available: the GapGPT key the owner pointed to was not present in the Shahnameh project env or on its server, so the deployed brief runs on the template fallback); real tablets/phones; behaviour behind the production CDN (SSE buffering); anything under load.
+**Not verified:** real tablets/phones; SSE itself behind the CDN (it is buffered there, so the long-poll fallback is what actually runs in production); anything under load.
 
 ## Which parts of the architecture were my own thinking
 
