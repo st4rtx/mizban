@@ -22,7 +22,7 @@ server/src/services/reports.ts, ai.ts, routes/reports.ts, web/src/pages/Report.t
 - Flags are plain rules: discount rate ≥ 6%, a user discounting ≥ 20% of orders (min 4), ≥ 2 voids after cooking began, p90 prep ≥ 32 min, sales ±25/30% vs same weekday average of the last 4 weeks, a best seller marked sold out.
 - The model only writes sentences from a closed JSON of aggregates. It is told the data block is data, not instructions.
 - Output is rejected (template shown instead) if: length out of range, contains a link, or contains a number of 4+ digits that is not in the input.
-- Cost bound: one call per distinct data hash per branch/day; manager endpoint rate-limited to 10/min; 15 s timeout; `max_tokens` 600.
+- Cost bound: one call per distinct data hash per branch/day; the "rewrite" button (`force`) skips the cache at most once a minute; manager endpoint rate-limited to 10/min; 15 s timeout; `max_tokens` 600.
 
 ## Edge Cases
 

@@ -8,6 +8,9 @@ import { assertBranch } from '../services/orders.js';
 import { dayMetrics, detectAnomalies, templateBrief } from '../services/reports.js';
 
 const Q = z.object({ branchId: z.string().uuid(), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
+const BriefQ = Q.extend({ force: z.boolean().default(false) });
+const FORCE_COOLDOWN_MS = 60_000; // a manual rewrite is allowed at most once a minute per branch/day
+const TEMPLATE_RETRY_MS = 120_000;
 
 export function reportRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
   app.get('/reports/day', { preHandler: guard(['manager']) }, async (req) => {
@@ -25,7 +28,7 @@ export function reportRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
     '/reports/day/brief',
     { preHandler: guard(['manager']), config: { rateLimit: { max: 10, timeWindow: '1 minute' } } },
     async (req) => {
-      const q = Q.parse(req.body);
+      const q = BriefQ.parse(req.body);
       const user = req.user!;
       assertBranch(user, q.branchId);
       const { metrics, anomalies } = await withTenant(db, user.restaurantId, async (tx) => {
@@ -38,8 +41,11 @@ export function reportRoutes(app: FastifyInstance, { config, db, guard }: Ctx) {
       const cached = await withTenant(db, user.restaurantId, async (tx) =>
         (await tx.query('SELECT source, body, model, created_at FROM day_briefs WHERE branch_id = $1 AND day = $2 AND input_hash = $3', [q.branchId, q.date, hash])).rows[0],
       );
-      // An AI brief for identical numbers is final (cost bound). A fallback is retried after 2 minutes.
-      if (cached && (cached.source === 'ai' || Date.now() - new Date(cached.created_at).getTime() < 120_000)) {
+      // Same numbers, same brief (cost bound). A fallback is retried after 2 minutes. "Rewrite" (force) skips the
+      // cache but only once a minute, so the button can never turn into a cost or abuse channel.
+      const ageMs = cached ? Date.now() - new Date(cached.created_at).getTime() : Infinity;
+      const reuse = cached && (q.force ? ageMs < FORCE_COOLDOWN_MS : cached.source === 'ai' || ageMs < TEMPLATE_RETRY_MS);
+      if (cached && reuse) {
         return { source: cached.source, text: cached.body, generatedAt: cached.created_at, cached: true };
       }
 

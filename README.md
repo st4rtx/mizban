@@ -33,7 +33,7 @@ Developer loop (db in Docker, API and Vite on the host; needs Node 20):
 
 ```bash
 make dev                      # db + migrate + seed + API (:8081) + Vite (:5173)
-make test                     # 24 tests against a real Postgres (needs the db container)
+make test                     # 25 tests against a real Postgres (needs the db container)
 make reset                    # rebuild demo data
 ```
 

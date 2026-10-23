@@ -104,4 +104,17 @@ describe('full service workflow', () => {
     assert.equal(r.body.source, 'template');
     assert.ok(r.body.text.length > 40);
   });
+  it('AI brief: same numbers are served from cache; "rewrite" is rate-limited per branch', async () => {
+    const sara = api(ctx, await login(ctx, 'sara'));
+    const f = await fixtures(ctx);
+    const day = new Date(Date.now() + 3.5 * 3600_000 - 52 * 3600_000).toISOString().slice(0, 10);
+    const body = { branchId: f.saadat.id, date: day };
+    const first = await sara.post('/api/reports/day/brief', body);
+    const again = await sara.post('/api/reports/day/brief', body);
+    const forced = await sara.post('/api/reports/day/brief', { ...body, force: true });
+    assert.equal(first.status, 200);
+    assert.equal(again.body.cached, true);
+    assert.equal(forced.body.cached, true, 'force inside the 60 s cooldown must not call the provider again');
+    assert.equal((await sara.post('/api/reports/day/brief', { ...body, force: 'yes' })).status, 400);
+  });
 });

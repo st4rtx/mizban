@@ -27,9 +27,9 @@ export default function Report() {
   const [briefErr, setBriefErr] = useState('');
   const [briefBusy, setBriefBusy] = useState(false);
 
-  async function loadBrief() {
+  async function loadBrief(force = false) {
     setBriefBusy(true); setBriefErr('');
-    try { setBrief(await api.post<Brief>('/api/reports/day/brief', { branchId, date: day })); }
+    try { setBrief(await api.post<Brief>('/api/reports/day/brief', { branchId, date: day, force })); }
     catch (e) { setBriefErr((e as ApiError).message); }
     finally { setBriefBusy(false); }
   }
@@ -58,7 +58,7 @@ export default function Report() {
       <section className="card panel brief" style={{ marginBottom: 16 }}>
         <div className="row between" style={{ marginBottom: 8 }}>
           <h2 style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center' }}><Icon name="sparkle" size={20} /> خلاصه روز برای مدیر</h2>
-          <button className="btn sm" onClick={() => void loadBrief()} disabled={briefBusy}><Icon name="refresh" />{briefBusy ? 'در حال نوشتن…' : 'بازنویسی'}</button>
+          <button className="btn sm" onClick={() => void loadBrief(true)} disabled={briefBusy}><Icon name="refresh" />{briefBusy ? 'در حال نوشتن…' : 'بازنویسی'}</button>
         </div>
         {briefBusy && !brief ? <div style={{ display: 'grid', gap: 10 }}><Skeleton h={16} /><Skeleton h={16} w="92%" /><Skeleton h={16} w="70%" /></div>
           : brief ? (<>

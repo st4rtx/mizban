@@ -33,6 +33,7 @@ These are real, from this build:
 8. **Duplicate content.** The day-report UI showed every flag twice (once in the template text, once as a flag row). Found only by looking at a screenshot.
 9. **Live provider flakiness.** The first deployed brief returned `fetch failed`; a direct POST then hung 25 s while a `GET /models` with the same key returned 200 in 0.5 s. Minutes later every model answered in about a second and the brief worked (about 6 s end to end). Cause unknown (provider side or path from the host). The template fallback absorbed it, which is the design, but it means provider latency is not something I can promise.
 10. **Model said «امروز» about yesterday.** Caught by reading the first real AI output, not by the number validator (it only checks digits). Fixed with an explicit prompt rule; there is no automated check for wording errors like this.
+11. **A button that did nothing.** The assistant built the cache so an AI brief for identical numbers is final, and also built a "rewrite" button on the same endpoint. The button silently returned the cached text. I only noticed when re-testing the prompt fix on the live URL and got `cached: true`. Fixed with a `force` flag and a 60 s per-branch cooldown (and a test).
 
 ## One recommendation I rejected
 
@@ -43,7 +44,7 @@ A second, smaller one: the assistant's first instinct for the brief's anomaly de
 ## How generated code was verified
 
 - `tsc --noEmit` on server and web, every change.
-- 24 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
+- 25 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
 - Direct SQL checks: the app role has `rolbypassrls = f`, no-tenant queries return 0 rows.
 - Smoke scripts with `curl` against the running API; a screenshot pass at desktop and phone widths for every screen.
 - Built the production image, started it against a database, checked `/ready`, static assets, SPA fallback, memory (≈ 42 MB idle).
