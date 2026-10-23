@@ -25,3 +25,5 @@ export interface KitchenItem {
   id: string; orderId: string; name: string; qty: number; note: string | null; status: ItemStatus; version: number; station: 'kitchen' | 'bar';
   round: number; createdAt: string; statusAt: string; orderNumber: number; kind: 'dine_in' | 'takeaway'; tableLabel: string | null; tableZone: string | null;
 }
+
+export interface AdminTable { id: string; label: string; zone: string; seats: number; sort: number; active: boolean; busy: boolean }

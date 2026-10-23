@@ -94,6 +94,24 @@ The public URL sits behind ArvanCloud, which buffers the SSE response (no bytes 
 - **Decision (wrong):** test setup created a fresh database but re-ran migrations, which re-set the `mizban_app` role password cluster-wide, locking my dev API out until I noticed.
 - **Would do instead:** namespaced role names per database, or run tests in a throwaway Postgres container. Fixed for now by sharing one password.
 
+## 17. A zone is a name on a table, not a table of its own
+- **Decision:** `dining_tables.zone` stays a text column; "add a zone" means adding tables with a new name, "rename a zone" is a bulk update.
+- **Reason:** the owner's request was "how many tables, how many areas"; that is two numbers and a label, and a zones table would add joins, a delete problem, and a migration for no behaviour the restaurant asked for.
+- **Alternative:** a `zones` table with its own sort order, capacity and settings.
+- **Trade-off:** an empty zone cannot exist (it vanishes when its last table is deactivated), zone order is implied by table sort, a typo creates a new zone (fixed with rename/merge), and there are no per-zone settings. I would add the table the day someone wants zone-level service charge or a closing time.
+
+## 18. Retire, never delete (tables and menu items)
+- **Decision:** the setup screens add and edit but never delete. A table becomes inactive; an item becomes unavailable. A table with an open order cannot be retired.
+- **Reason:** orders, payments and reports reference them. Deleting rewrites history or fails halfway; "inactive" keeps both honest.
+- **Alternative:** soft delete with a `deleted_at`, or cascade.
+- **Trade-off:** clutter grows (inactive rows stay in the table list) and an item name stays taken forever because of the unique name index. A manager cannot rename or fix a typo in an item name yet.
+
+## 19. Unique names enforced by the database, case-insensitively
+- **Decision:** migration 002 adds `UNIQUE (restaurant_id, lower(name))` on items and categories; the API turns the violation into a 409 with a readable message.
+- **Reason:** reports group sales by name, so two "Latte" rows would silently merge and mislead; the unique index also settles two managers adding the same item at once without any locking code.
+- **Alternative:** check-then-insert in code (races), or group reports by id.
+- **Trade-off:** a legitimate "same name, different price" (e.g. small/large) must be named differently; and the migration would fail on a database that already has duplicates (the demo has none).
+
 ## 16. Draft cart on the client, "send" as one batch
 - **Decision:** items live in a local cart (sessionStorage) until the waiter sends; the batch carries one `requestId`.
 - **Reason:** the kitchen never sees half-typed orders; a retry cannot duplicate dishes.

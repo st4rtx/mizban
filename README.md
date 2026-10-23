@@ -18,7 +18,7 @@ Service-floor platform for Iranian cafés and restaurants. This first version fi
 
 Password for all: `demo1234`. These exist only because `DEMO_MODE=true`; the login page lists them only in that mode.
 
-Things to try: open two browsers (`ali` and `reza`), send an order from one and watch it arrive on the other; open the same table from both; apply a 30% discount as `maryam` (refused) then as `sara`; open checkout on one device, add an item on another, then try to pay on the first; log in as `bagh` and try to find anything from Narenj.
+Things to try: as `sara`, add a daily special on the Menu page and a new zone with a few tables on the Tables page, then watch `ali`'s screens pick them up live; open two browsers (`ali` and `reza`), send an order from one and watch it arrive on the other; open the same table from both; apply a 30% discount as `maryam` (refused) then as `sara`; open checkout on one device, add an item on another, then try to pay on the first; log in as `bagh` and try to find anything from Narenj.
 
 ## Run locally (one command)
 
@@ -33,7 +33,7 @@ Developer loop (db in Docker, API and Vite on the host; needs Node 20):
 
 ```bash
 make dev                      # db + migrate + seed + API (:8081) + Vite (:5173)
-make test                     # 25 tests against a real Postgres (needs the db container)
+make test                     # 42 tests against a real Postgres (needs the db container)
 make reset                    # rebuild demo data
 ```
 

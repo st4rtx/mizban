@@ -9,12 +9,14 @@ import OrderPage from './pages/Order';
 import Kitchen from './pages/Kitchen';
 import Report from './pages/Report';
 import MenuAdmin from './pages/MenuAdmin';
+import Tables from './pages/Tables';
 
 const NAV: { path: string; label: string; icon: IconName; roles: string[] }[] = [
   { path: '/floor', label: 'سالن', icon: 'floor', roles: ['manager', 'floor'] },
   { path: '/kitchen', label: 'آشپزخانه', icon: 'kitchen', roles: ['manager', 'kitchen'] },
   { path: '/report', label: 'گزارش', icon: 'chart', roles: ['manager'] },
   { path: '/menu', label: 'منو', icon: 'menu', roles: ['manager'] },
+  { path: '/tables', label: 'میزها', icon: 'settings', roles: ['manager'] },
 ];
 
 function Shell() {
@@ -64,6 +66,7 @@ function Shell() {
               { match: /^\/kitchen$/, el: () => <Kitchen /> },
               { match: /^\/report$/, el: () => <Report /> },
               { match: /^\/menu$/, el: () => <MenuAdmin /> },
+              { match: /^\/tables$/, el: () => <Tables /> },
             ]}
           />
         </main>

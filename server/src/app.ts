@@ -20,6 +20,7 @@ import { floorRoutes } from './routes/floor.js';
 import { orderRoutes } from './routes/orders.js';
 import { kitchenRoutes } from './routes/kitchen.js';
 import { reportRoutes } from './routes/reports.js';
+import { adminRoutes } from './routes/admin.js';
 import { eventRoutes } from './routes/events.js';
 
 declare module 'fastify' {
@@ -127,6 +128,7 @@ export async function buildApp({ config, db }: Deps): Promise<FastifyInstance> {
     orderRoutes(api, ctx);
     kitchenRoutes(api, ctx);
     reportRoutes(api, ctx);
+    adminRoutes(api, ctx);
     eventRoutes(api, ctx);
   }, { prefix: '/api' });
 

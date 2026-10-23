@@ -101,7 +101,7 @@ export async function loadOrder(tx: Tx, orderId: string, lock: 'none' | 'update'
 }
 export type OrderView = Awaited<ReturnType<typeof loadOrder>>;
 
-async function audit(
+export async function audit(
   tx: Tx,
   user: AuthUser,
   branchId: string | null,

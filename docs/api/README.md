@@ -11,6 +11,12 @@ All under `/api`, JSON, session cookie `mz_session` (HttpOnly, SameSite=Lax, Sec
 | GET | /floor?branchId | manager, floor | tables + open orders + takeaway |
 | GET | /menu | any | categories with items |
 | PATCH | /menu/items/:id | manager | `{available?, price?}`, audited |
+| POST | /menu/items | manager | `{categoryId, name, price, station, prepMinutes?, description?}`; 409 `duplicate_name`; audited |
+| POST | /menu/categories | manager | `{name, icon?}`; 409 `duplicate_name`; audited |
+| GET | /admin/tables?branchId | manager | all tables incl. inactive, with `busy` (open order) |
+| POST | /admin/tables | manager | `{branchId, zone, seats, count?, label?}`; numbers continue automatically; 409 `duplicate_label` |
+| PATCH | /admin/tables/:id | manager | `{label?, zone?, seats?, active?}`; 409 `table_busy` when an order is open |
+| PATCH | /admin/zones | manager | `{branchId, from, to}`; bulk rename, merges if `to` exists |
 | POST | /orders | manager, floor | open table/takeaway; idempotent per table |
 | GET | /orders/:id | any (branch-scoped) | full order with totals |
 | POST | /orders/:id/items | manager, floor | `{requestId, items[]}`, idempotent on requestId |
@@ -27,4 +33,4 @@ All under `/api`, JSON, session cookie `mz_session` (HttpOnly, SameSite=Lax, Sec
 | GET | /changes | any | long-poll twin of /events (≤25 s) for CDNs that buffer streams |
 | GET | /health, /ready | public | liveness, DB readiness |
 
-Common error codes: `unauthorized` 401, `forbidden` 403, `not_found` 404, `item_changed` / `bill_changed` / `order_closed` / `items_pending` / `item_unavailable` / `has_payments` 409.
+Common error codes: `unauthorized` 401, `forbidden` 403, `not_found` 404, `item_changed` / `bill_changed` / `order_closed` / `items_pending` / `item_unavailable` / `has_payments` / `duplicate_name` / `duplicate_label` / `table_busy` 409.

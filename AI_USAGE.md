@@ -45,7 +45,7 @@ A second, smaller one: the assistant's first instinct for the brief's anomaly de
 ## How generated code was verified
 
 - `tsc --noEmit` on server and web, every change.
-- 25 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
+- 42 tests against a **real Postgres** (migrations + real seed, no mocks): tenant isolation at SQL and HTTP, role enforcement, CSRF/auth, five concurrency races with parallel requests, one full workflow, AI output validation.
 - Direct SQL checks: the app role has `rolbypassrls = f`, no-tenant queries return 0 rows.
 - Smoke scripts with `curl` against the running API; a screenshot pass at desktop and phone widths for every screen.
 - Built the production image, started it against a database, checked `/ready`, static assets, SPA fallback, memory (≈ 42 MB idle).

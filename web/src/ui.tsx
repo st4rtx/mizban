@@ -24,6 +24,7 @@ const P = {
   refresh: 'M20 11a8 8 0 0 0-14-4M4 4v4h4M4 13a8 8 0 0 0 14 4M20 20v-4h-4',
   users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20c0-3.5 3-5 7-5s7 1.5 7 5M17 4.5a3.5 3.5 0 0 1 0 6.5M18 15c2.5.4 4 1.7 4 5',
   print: 'M7 9V3h10v6M7 17H4v-6h16v6h-3M7 14h10v7H7z',
+  settings: 'M4 7h9M17 7h3M4 17h3M11 17h9M15 4v6M9 14v6',
 } as const;
 export type IconName = keyof typeof P;
 

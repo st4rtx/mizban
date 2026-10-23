@@ -358,3 +358,23 @@ h1, h2, h3, p { margin: 0; }
   .receipt td { padding: 2px 0; }
   .receipt hr { border: 0; border-top: 1px dashed #000; }
 }
+
+/* ---------- setup screens (menu + tables) ---------- */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.toolbar .grow { flex: 1; }
+.tbl.tadm { min-height: 92px; cursor: pointer; }
+.tbl.tadm .no { font-size: 28px; }
+.tbl.inactive { opacity: 0.6; background: var(--sunken); border-style: dashed; }
+.zonebar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.zonebar h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--ink-2); }
+.zonebar .count { color: var(--ink-3); font-size: 13px; }
+.zonebar::after { content: ''; flex: 1; height: 1px; background: var(--line); order: 5; }
+.zonebar .btn { order: 9; }
+.stepper.lg button { width: 48px; height: 48px; }
+.stepper.lg b { min-width: 44px; font-size: 20px; }
+.hint { font-size: 13px; color: var(--ink-3); }
+.emoji-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.emoji-row button { width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); font-size: 22px; }
+.emoji-row button.on { border-color: var(--firouzeh); background: var(--firouzeh-bg); }
+
+.field > .stepper { justify-self: start; }

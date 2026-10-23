@@ -25,7 +25,7 @@ The only cross-tenant read is `auth_lookup(username)` (SECURITY DEFINER), needed
 
 ## Indexes
 
-`orders_one_open_per_table` (partial unique), `orders_branch_open_idx`, `orders_branch_closed_idx` (reports), `order_items_live_idx` (kitchen board), `audit_restaurant_at_idx`.
+`menu_items_name_uq` and `menu_categories_name_uq` (unique per restaurant, `lower(name)`, migration 002), `orders_one_open_per_table` (partial unique), `orders_branch_open_idx`, `orders_branch_closed_idx` (reports), `order_items_live_idx` (kitchen board), `audit_restaurant_at_idx`.
 
 ## Migration notes
 
@@ -42,3 +42,4 @@ Staff names and discount reasons are free text and are never passed to the AI pr
 ## Change History
 
 - 2026-10-23: Initial version.
+- 2026-10-23: Migration 002: unique names for menu items and categories per restaurant.
